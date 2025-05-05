@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+</head>
+<body style="
+    margin: 0; 
+    padding: 0; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    background: url('static/background.jpg') no-repeat center center fixed; 
+    background-size: cover;
+">
+
+    <div style="
+        text-align: center; 
+        background: rgba(0, 0, 0, 0.6); 
+        padding: 30px; 
+        border-radius: 15px; 
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    ">
+        <h1 style="
+            color: white; 
+            font-size: 36px; 
+            margin-bottom: 20px; 
+            font-family: Arial, sans-serif;
+        ">
+            Welcome to Emotion-Based Song Recommendation
+        </h1>
+        
+        <a href="{{ url_for('main_page') }}" style="
+            display: inline-block; 
+            background: #ff6b6b; 
+            color: white; 
+            padding: 15px 30px; 
+            font-size: 20px; 
+            border-radius: 8px; 
+            text-decoration: none; 
+            font-weight: bold;
+            transition: 0.3s;
+        " onmouseover="this.style.background='#ff4f4f'" onmouseout="this.style.background='#ff6b6b'">
+            Next
+        </a>
+    </div>
+
+</body>
+</html>
+

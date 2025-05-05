@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: url('/static/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        h1 {
+            color: white;
+            margin-top: 50px;
+        }
+
+        label {
+            color: white;
+            font-size: 20px;
+            display: block;
+            margin-top: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            width: 250px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+            transition: 0.3s;
+        }
+
+        .detect-btn {
+            background-color: #ff6600;
+            color: white;
+        }
+
+        .detect-btn:hover {
+            background-color: #e65c00;
+        }
+
+        .play-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .play-btn:hover {
+            background-color: #218838;
+        }
+
+        .recommend-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .recommend-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .stop-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .stop-btn:hover {
+            background-color: #c82333;
+        }
+
+        #cameraContainer {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #videoFeed {
+            border: 2px solid white;
+            border-radius: 10px;
+            max-width: 80%;
+            margin-top: 10px;
+        }
+
+        #emotionText {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        /* Back Button Styling */
+        .back-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #333;
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            line-height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Music Recommendation Based on Emotion</h1>
+
+    <label for="language">Enter Language:</label>
+    <input type="text" id="language" placeholder="Enter Language">
+
+    <label for="singer">Enter Singer Name/Hero Name:</label>
+    <input type="text" id="singer" placeholder="Singer Name">
+
+    <br><br>
+
+    <button class="detect-btn" onclick="startCamera()">Detect Emotion</button>
+    <button class="stop-btn" onclick="stopCamera()">Stop Camera</button>
+
+    <div id="cameraContainer">
+        <h2 style="color: white;">Emotion Detection</h2>
+        <img id="videoFeed" src="" alt="Camera Feed">
+        <p id="emotionText"></p>
+    </div>
+
+    <button class="play-btn" onclick="playSong()">Play a Song</button>
+    <button class="recommend-btn" onclick="recommendSongs()">Recommend Songs</button>
+
+    <!-- Back Button -->
+    <a href="javascript:history.back()" class="back-btn">←</a>
+
+<script>
+    let emotionFetchInterval;
+
+    function startCamera() {
+        document.getElementById("cameraContainer").style.display = "block";
+        document.getElementById("videoFeed").src = "{{ url_for('video_feed') }}";
+
+        if (emotionFetchInterval) {
+            clearInterval(emotionFetchInterval);
+        }
+
+        emotionFetchInterval = setInterval(() => {
+            fetch('/get_emotion')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("emotionText").innerText = `Detected Emotion: ${data.emotion}`;
+                })
+                .catch(error => console.error("Error fetching emotion:", error));
+        }, 2000);
+    }
+
+    function stopCamera() {
+        document.getElementById("cameraContainer").style.display = "none";
+        document.getElementById("videoFeed").src = "";
+        document.getElementById("emotionText").innerText = "";
+        clearInterval(emotionFetchInterval);
+    }
+
+    function playSong() {
+        let emotionText = document.getElementById("emotionText").innerText.trim();
+        let language = document.getElementById("language").value.trim();
+        let singer = document.getElementById("singer").value.trim();
+
+        if (!emotionText || !language || !singer) {
+            alert("Please enter all details and detect emotion first!");
+            return;
+        }
+
+        let emotion = emotionText.replace("Detected Emotion: ", "").trim();
+        let searchQuery = `${singer} ${language} ${emotion} song`;
+
+        stopCamera();
+
+        fetch(`/get_youtube_link?query=${encodeURIComponent(searchQuery)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.video_url) {
+                    window.open(data.video_url, "_blank");
+                } else {
+                    window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`, "_blank");
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching YouTube link:", error);
+                window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`, "_blank");
+            });
+    }
+
+    function recommendSongs() {
+        let emotionText = document.getElementById("emotionText").innerText.trim();
+        let language = document.getElementById("language").value.trim();
+        let singer = document.getElementById("singer").value.trim();
+
+        if (!emotionText || !language || !singer) {
+            alert("Please enter all details and detect emotion first!");
+            return;
+        }
+
+        let emotion = emotionText.replace("Detected Emotion: ", "").trim();
+        let searchQuery = `${singer} ${language} ${emotion} songs playlist`;
+
+        stopCamera();
+
+        window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchQuery)}`, "_blank");
+    }
+</script>
+
+</body>
+</html>
+
